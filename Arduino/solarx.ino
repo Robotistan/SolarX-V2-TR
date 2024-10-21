@@ -2,7 +2,7 @@
 
 #define STEP_DELAY 15
 
-//Pin Definations of Battery Measure LEDs
+//Pil Ölçüm LED'lerin Pin Tanımlamaları
 #define led1 4
 #define led2 5
 #define led3 6
@@ -11,25 +11,25 @@
 int BUTTON_PIN = A2;
 
 int buttonState = 0; 
-int solar_mode = 1; //Default SolarX Mode
+int solar_mode = 1; //Default SolarX Modu
 
-int TOLERANCE = 20; //Tolerance Of Between Two LDR's values
+int TOLERANCE = 20; //İki LDR Arasındaki Tolerans
 
 Servo servohori;
 int servoh = 0;
-int servohLimitHigh = 170;  //Maximum Limit Of Horizontal Servo
-int servohLimitLow = 20;    //Minimum Limit Of Horizontal Servo
+int servohLimitHigh = 170;  //Yatay Servo Maksimum Açısı
+int servohLimitLow = 20;    //Yatay Servo Minimum Açısı
 
 Servo servoverti;
 int servov = 0;
-int servovLimitHigh = 170;  //Maximum Limit Of Vertical Servo
-int servovLimitLow = 30;    //Minimum Limit Of Vertical Servo
+int servovLimitHigh = 170;  //Dikey Servo Maksimum Açısı
+int servovLimitLow = 30;    //Dikey Servo Minimum Açısı
 
-//Pin Definations of LDRs
-int ldrtopr = A4;  //Top R LDR
-int ldrbotr = A3;  //Bottom R LDR
-int ldrtopl = A1;  //Top L LDR
-int ldrbotl = A0;  //Bottom L LDR
+//LDR pinlerinin tanımlaması
+int ldrtopr = A4;  //Üst R LDR
+int ldrbotr = A3;  //Alt R LDR
+int ldrtopl = A1;  //Üst L LDR
+int ldrbotl = A0;  //Alt L LDR
 
 void setup() {
   pinMode(led1, OUTPUT);
@@ -37,11 +37,11 @@ void setup() {
   pinMode(led3, OUTPUT);
   pinMode(led4, OUTPUT);
 
-  servohori.attach(11); //Horizontal Servo Pin
-  servohori.write(90);  //Horizontal Servo Angle
+  servohori.attach(11); //Yatay Servo Pini
+  servohori.write(90);  //Yatay Servo Açısı
   delay(1500);
-  servoverti.attach(9); //Vertical Servo Pin
-  servoverti.write(90); //Vertical Servo Angle
+  servoverti.attach(9); //Dikey Servo Pini
+  servoverti.write(90); //Dikey Servo Açısı
   Serial.begin(9600); 
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -56,7 +56,7 @@ void loop() {
     digitalWrite(led3, LOW);
     digitalWrite(led4, LOW);
     delay(50);
-    if (solar_mode == 1) {  //Mode 1: Start Position
+    if (solar_mode == 1) {  //Mod 1: Başlangıç Pozisyonu
       for (int i = 0; i < 3; i++) {
         digitalWrite(led1, HIGH);
         delay(300);
@@ -69,7 +69,7 @@ void loop() {
       servoverti.attach(9);
       servoverti.write(90);
       solar_mode++;
-    } else if (solar_mode == 2) {  //Mode 2: Sunlight Position
+    } else if (solar_mode == 2) {  //Mod 2: Gün Işığı Modu
       TOLERANCE = 3;
       for (int i = 0; i < 3; i++) {
         digitalWrite(led1, HIGH);
@@ -80,7 +80,7 @@ void loop() {
         delay(300);
       }
       solar_mode++;
-    } else if (solar_mode == 3) {  //Mode 3: Flashlight Position
+    } else if (solar_mode == 3) {  //Mod 3: Flash Işığı Modu
       TOLERANCE = 20;
       for (int i = 0; i < 3; i++) {
         digitalWrite(led1, HIGH);
@@ -102,7 +102,7 @@ void loop() {
   int solarvalue = analogRead(A6);
   int batvalue = analogRead(A7);
   //Calculating Percent Of Battery
-    
+  float voltage = batvalue * (10 / 1024.0);
 
   //Serial.println("solarvalue:");
   //Serial.println(solarvalue);
@@ -113,7 +113,7 @@ void loop() {
   //Serial.println("voltage:");
   //Serial.println(voltage);
 
-  //Capturing Analog Values Of Each LDR
+  //LDR'lerin Okunan Değerleri
   int topl = analogRead(ldrtopl);
   int topr = analogRead(ldrtopr);
   int botl = analogRead(ldrbotl);
@@ -133,11 +133,11 @@ void loop() {
   Serial.println(servoh);
   */
   
-  //Calculating average of LDR
-  int avgtop = (topl + topr) / 2;    //average of top LDRs
-  int avgbot = (botl + botr) / 2;    //average of bottom LDRs
-  int avgleft = (topl + botl) / 2;   //average of left LDRs
-  int avgright = (topr + botr) / 2;  //average of right LDRs
+  //LDR'lerin Ortalama Değerleri
+  int avgtop = (topl + topr) / 2;    //Üstteki LDR'ler
+  int avgbot = (botl + botr) / 2;    //Alttki LDR'ler
+  int avgleft = (topl + botl) / 2;   //Soldaki LDR'ler
+  int avgright = (topr + botr) / 2;  //Sağdaki LDR'ler
   
 /*
   Serial.print(avgtop);
@@ -149,7 +149,7 @@ void loop() {
   Serial.println(avgright);
 */
   
-  //Battery Measure
+  //Pil Doluluk Değeri
   if (voltage <= 3.3) {  //%0 - %20
     digitalWrite(led1, LOW);
     digitalWrite(led2, LOW);
@@ -180,15 +180,13 @@ void loop() {
     digitalWrite(led4, HIGH);
   }
 
-  //Servo Move - Top & Bottom
-  servov = servoverti.read(); //Read Last Position Of Vertical Servo
+  servov = servoverti.read(); //Dikey Servoların Son Pozisyonu
 
   if (avgbot - avgtop > TOLERANCE) {
     if (servov <= servovLimitLow) {
       servov = servovLimitLow;
     } else
       servoverti.write(servov - 1);
-
 
   } else if (avgtop - avgbot > TOLERANCE) {
     if (servov >= servovLimitHigh) {
@@ -202,7 +200,7 @@ void loop() {
   delay(STEP_DELAY);
 
   //Servo Move - Right & Left
-  servoh = servohori.read();  //Read Last Position Of Horizontal Servo
+  servoh = servohori.read();  //Yatay Servoların Son Pozisyonu
 
   if (avgleft - avgright > TOLERANCE) {
     if (servoh >= servohLimitHigh) {
